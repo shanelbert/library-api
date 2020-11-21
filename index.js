@@ -14,7 +14,7 @@ express()
 	.get('/collection/loc', async (req, res) => {
 		try {
 			const client = await pool.connect();
-			client.query(`SELECT no_lorong, no_rak FROM collection WHERE id=${req.query.id};`, (err, queryresult) => {
+			client.query(`SELECT judul, no_lorong, no_rak FROM collection WHERE id=${req.query.id};`, (err, queryresult) => {
 				if (err) {
 					throw err;
 				} else {
