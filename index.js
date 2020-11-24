@@ -11,34 +11,40 @@ const pool = new Pool({
 
 express()
 	.use(bodyParser.json())
-	.get('/collection/loc', async (req, res) => {
+	.get('/collection/loc', async (req, res) => {		
 		try {
 			const client = await pool.connect();
 			client.query(`SELECT judul, no_lorong, no_rak FROM collection WHERE id=${req.query.id};`, (err, queryresult) => {
 				if (err) {
 					throw err;
-				} else {
-					client.release();
-					res.json(queryresult.rows[0]);
 				}
+
+				client.release();
+				res.json(queryresult.rows[0]);
 			});
 		} catch (err) {
-			res.status(500).send('Error ' + err);
+			res.status(500).send(err);
 		}
 	})
 	.post('/collection', async (req, res) => {
 		try {
 			const client = await pool.connect();
-			const { judul, tipe, no_lorong, no_rak } = req.body; 
+			const { judul, tipe, no_lorong, no_rak } = req.body;
 			client.query(`INSERT INTO collection(judul, tipe, no_lorong, no_rak) VALUES ('${judul}', '${tipe}', '${no_lorong}', '${no_rak}');`, (err) => {
 				if (err) {
 					throw err;
 				}
+				
+				client.query(`SELECT id, judul, no_lorong, no_rak FROM collection WHERE id = (SELECT MAX(id) FROM collection)`, (err, queryresult) => {
+					if (err) {
+						throw err;
+					}
+					client.release();
+					res.json(queryresult.rows[0]);
+				});
 			});
-			client.release();
-			res.json(req.body);
 		} catch (err) {
-			res.status(500).send('Error ' + err);
+			res.status(500).send(err);
 		}
 	})
 	.listen(PORT, () => console.log(`Listening on ${PORT}`));
